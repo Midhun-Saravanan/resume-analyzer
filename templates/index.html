@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer — ResumeAI</title>
+    <link rel="stylesheet" href="/static/glass.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+    <div class="page-wrapper">
+    <div class="container">
+
+        <div class="page-header animate-fade">
+            <h1>🔍 Resume Analyzer</h1>
+            <p>Upload your resume and paste a job description to get your real AI-powered ATS score</p>
+        </div>
+
+        <!-- UPLOAD CARD -->
+        <div class="glass-card animate-fade animate-delay-1" style="margin-bottom:20px;">
+            <div class="card-title">📄 Upload Your Resume</div>
+            <div class="form-group">
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="resumeFile" accept=".pdf,.docx" onchange="updateFileName()"/>
+                    <div class="upload-icon">☁️</div>
+                    <p id="uploadText">Click to upload or drag & drop</p>
+                    <span>Supports PDF and DOCX</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>📋 Job Description</label>
+                <textarea id="jobDesc" rows="7" placeholder="Paste the full job description here..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="analyzeResume()">🔍 Analyze My Resume</button>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="resultBox" style="display:none;">
+
+            <div class="role-banner" id="roleBanner"></div>
+
+            <!-- Score Row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                <div class="glass-card animate-fade">
+                    <div class="card-title">ATS Match Score</div>
+                    <div class="score-circle-wrap">
+                        <div class="score-circle" id="scoreCircle" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+                            <span id="scoreNum">0%</span>
+                            <small>ATS SCORE</small>
+                        </div>
+                        <p id="scoreLabel" style="color:var(--subtext);font-size:0.85rem;text-align:center;margin-top:8px;"></p>
+                    </div>
+                </div>
+                <div class="glass-card animate-fade animate-delay-1">
+                    <div class="card-title">Resume Strength</div>
+                    <div class="score-circle-wrap">
+                        <div class="score-circle" id="strengthCircle" style="background:linear-gradient(135deg,#00e676,#00b0ff)">
+                            <span id="strengthNum">0%</span>
+                            <small>STRENGTH</small>
+                        </div>
+                        <p id="strengthLabel" style="color:var(--subtext);font-size:0.85rem;text-align:center;margin-top:8px;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Breakdown -->
+            <div class="glass-card animate-fade animate-delay-2" style="margin-bottom:20px;">
+                <div class="card-title">📊 Score Breakdown</div>
+                <div id="breakdownBars"></div>
+            </div>
+
+            <!-- Sections Checklist -->
+            <div class="glass-card animate-fade animate-delay-3" style="margin-bottom:20px;">
+                <div class="card-title">📋 Resume Sections Checklist</div>
+                <div id="sectionChecklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;"></div>
+            </div>
+
+            <!-- Keywords -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                <div class="glass-card animate-fade">
+                    <div class="card-title">✅ Matched Keywords</div>
+                    <div id="matchedKeywords"></div>
+                </div>
+                <div class="glass-card animate-fade animate-delay-1">
+                    <div class="card-title">❌ Missing Keywords</div>
+                    <div id="missingKeywords"></div>
+                </div>
+            </div>
+
+            <!-- Suggestion -->
+            <div class="glass-card animate-fade animate-delay-2" style="margin-bottom:20px;border-color:rgba(102,126,234,0.3);">
+                <div class="card-title">💡 AI Suggestions</div>
+                <div id="suggestionBox"></div>
+            </div>
+
+            <button class="btn-primary" onclick="downloadReport()" style="max-width:300px;margin:0 auto;display:flex;">
+                📥 Download PDF Report
+            </button>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="glass-card animate-fade" id="historyCard" style="display:none;margin-top:20px;">
+            <div class="card-title">🕐 Recent History</div>
+            <div id="historyList"></div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="/static/glass_nav.js"></script>
+    <script src="/static/script.js"></script>
+    <script>
+        const userName  = "{{ session.user_name }}";
+        const userEmail = "{{ session.user_email }}";
+        const initials  = userName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('profileAvatar').textContent = initials;
+        document.getElementById('profileName').textContent   = userName.split(' ')[0];
+        document.getElementById('dropdownName').textContent  = userName;
+        document.getElementById('dropdownEmail').textContent = userEmail;
+    </script>
+</body>
+</html>

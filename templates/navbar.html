@@ -1,0 +1,42 @@
+<nav class="navbar">
+    <div class="nav-brand">🧠 ResumeAI</div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/analyzer">Analyzer</a>
+        <a href="/compare">Compare</a>
+        <a href="/interview">Interview</a>
+        <a href="/builder">Builder</a>
+        <a href="/salary">Salary</a>
+        <a href="/tips">Tips</a>
+    </div>
+
+    {% if session.user_id %}
+    <!-- Logged in → show profile dropdown -->
+    <div class="nav-profile">
+        <div class="profile-btn" id="profileBtn">
+            <div class="profile-avatar" id="profileAvatar"></div>
+            <span class="profile-name" id="profileName"></span>
+            <span class="profile-arrow">▼</span>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="dropdown-header">
+                <strong id="dropdownName"></strong>
+                <span id="dropdownEmail"></span>
+            </div>
+            <a href="/dashboard" class="dropdown-item">📊 Dashboard</a>
+            <a href="/analyzer"  class="dropdown-item">🔍 Analyzer</a>
+            <a href="/builder"   class="dropdown-item">📝 Resume Builder</a>
+            <div class="dropdown-divider"></div>
+            <a href="/logout" class="dropdown-item danger">🚪 Logout</a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Not logged in → show login/signup buttons -->
+    <div class="nav-auth">
+        <a href="/login"    class="nav-login">Login</a>
+        <a href="/register" class="btn-primary">Sign Up</a>
+    </div>
+    {% endif %}
+
+</nav>

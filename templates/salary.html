@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Estimator — ResumeAI</title>
+    <link rel="stylesheet" href="/static/glass.css">
+    <style>
+        .salary-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .salary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px 20px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .salary-card:hover { transform: translateY(-5px); box-shadow: var(--glow); }
+        .salary-card.featured {
+            border-color: rgba(102,126,234,0.4);
+            box-shadow: var(--glow);
+            transform: scale(1.03);
+        }
+        .salary-card.featured:hover { transform: scale(1.03) translateY(-5px); }
+        .salary-featured-badge {
+            position: absolute;
+            top: -12px; left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .salary-card-icon { font-size: 2rem; margin-bottom: 10px; }
+        .salary-level { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text); margin-bottom: 4px; }
+        .salary-years { font-size: 0.78rem; color: var(--subtext); margin-bottom: 14px; }
+        .salary-range {
+            font-size: 1.6rem; font-weight: 900;
+            font-family: 'Syne', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .salary-lpa { font-size: 0.75rem; color: var(--subtext); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .salary-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .premium-tag {
+            display: inline-block;
+            background: rgba(102,126,234,0.12);
+            border: 1px solid rgba(102,126,234,0.25);
+            color: var(--primary);
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.82rem; font-weight: 600; margin: 3px;
+        }
+        .bonus-badge {
+            margin-top: 12px;
+            background: rgba(0,230,118,0.08);
+            border: 1px solid rgba(0,230,118,0.2);
+            color: #00e676;
+            padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;
+        }
+        .company-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; background: var(--input-bg);
+            border-radius: 10px; margin-bottom: 8px;
+            border: 1px solid var(--border); transition: transform 0.2s;
+        }
+        .company-item:hover { transform: translateX(4px); border-color: rgba(102,126,234,0.3); }
+        .company-rank {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; font-weight: 800; flex-shrink: 0;
+        }
+        .company-name { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+        .insights-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .insight-box {
+            background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; text-align: center;
+        }
+        .insight-box .insight-icon { font-size: 1.4rem; margin-bottom: 8px; }
+        .insight-box strong { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+        .insight-box span { font-size: 0.75rem; color: var(--subtext); }
+        .tips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .tip-item {
+            display: flex; gap: 14px; align-items: flex-start;
+            background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px;
+        }
+        .tip-num { font-size: 1rem; font-weight: 900; color: var(--primary); flex-shrink: 0; min-width: 26px; }
+        .tip-item strong { display: block; font-size: 0.88rem; color: var(--text); margin-bottom: 4px; }
+        .tip-item p { font-size: 0.8rem; color: var(--subtext); line-height: 1.5; margin: 0; }
+    </style>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="page-wrapper">
+<div class="container">
+
+    <div class="page-header animate-fade">
+        <h1>💰 Salary Estimator</h1>
+        <p>Paste a job description and get real AI-powered salary ranges, premium skills and top companies</p>
+    </div>
+
+    <div class="glass-card animate-fade animate-delay-1" style="margin-bottom:24px;">
+        <div class="card-title">📋 Paste Job Description</div>
+        <div class="form-group">
+            <textarea id="jobDesc" rows="8" placeholder="Paste the full job description here..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="estimateSalary()">💰 Estimate Salary</button>
+    </div>
+
+    <div id="salaryResults" style="display:none;">
+
+        <div class="role-banner animate-fade" id="salaryRoleBanner"></div>
+
+        <div class="salary-cards-grid">
+            <div class="salary-card animate-fade">
+                <div class="salary-card-icon">🎓</div>
+                <div class="salary-level">Fresher</div>
+                <div class="salary-years" id="fresherYears"></div>
+                <div class="salary-range" id="fresherRange"></div>
+                <div class="salary-lpa">LPA</div>
+            </div>
+            <div class="salary-card featured animate-fade animate-delay-1">
+                <div class="salary-featured-badge">Most Common</div>
+                <div class="salary-card-icon">💼</div>
+                <div class="salary-level">Mid Level</div>
+                <div class="salary-years" id="midYears"></div>
+                <div class="salary-range" id="midRange"></div>
+                <div class="salary-lpa">LPA</div>
+            </div>
+            <div class="salary-card animate-fade animate-delay-2">
+                <div class="salary-card-icon">🏆</div>
+                <div class="salary-level">Senior</div>
+                <div class="salary-years" id="seniorYears"></div>
+                <div class="salary-range" id="seniorRange"></div>
+                <div class="salary-lpa">LPA</div>
+            </div>
+        </div>
+
+        <div class="salary-details-grid">
+            <div class="glass-card animate-fade">
+                <div class="card-title">⚡ Premium Skills Detected</div>
+                <p style="font-size:0.82rem;color:var(--subtext);margin-bottom:12px;">These skills command higher salaries</p>
+                <div id="premiumSkills"></div>
+                <div id="skillBonus"></div>
+            </div>
+            <div class="glass-card animate-fade animate-delay-1">
+                <div class="card-title">🏢 Top Hiring Companies</div>
+                <p style="font-size:0.82rem;color:var(--subtext);margin-bottom:12px;">Top companies hiring for this role in India</p>
+                <div id="topCompanies"></div>
+            </div>
+        </div>
+
+        <div class="glass-card animate-fade" style="margin-bottom:24px;">
+            <div class="card-title">📊 Salary Insights</div>
+            <div class="insights-grid" id="insightsGrid"></div>
+        </div>
+
+        <div class="glass-card animate-fade animate-delay-1">
+            <div class="card-title">💡 How to Negotiate Higher Salary</div>
+            <div class="tips-grid">
+                <div class="tip-item"><span class="tip-num">01</span><div><strong>Research before interview</strong><p>Know the market range for your role and experience level going in.</p></div></div>
+                <div class="tip-item"><span class="tip-num">02</span><div><strong>Let them offer first</strong><p>Always let the employer state the number first. Then negotiate upward.</p></div></div>
+                <div class="tip-item"><span class="tip-num">03</span><div><strong>Highlight premium skills</strong><p>Skills like AWS, Kubernetes, and ML command 20-40% higher pay.</p></div></div>
+                <div class="tip-item"><span class="tip-num">04</span><div><strong>Consider full package</strong><p>Factor in bonuses, stock options, remote work, and learning opportunities.</p></div></div>
+                <div class="tip-item"><span class="tip-num">05</span><div><strong>Show impact with numbers</strong><p>Quantified achievements justify higher pay — "increased revenue by 30%".</p></div></div>
+                <div class="tip-item"><span class="tip-num">06</span><div><strong>Don't accept on the spot</strong><p>Always ask for 24-48 hours to consider any offer — it's expected.</p></div></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script src="/static/glass_nav.js"></script>
+<script>
+    const userName  = "{{ session.user_name }}";
+    const userEmail = "{{ session.user_email }}";
+    const initials  = userName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('profileAvatar').textContent = initials;
+    document.getElementById('profileName').textContent   = userName.split(' ')[0];
+    document.getElementById('dropdownName').textContent  = userName;
+    document.getElementById('dropdownEmail').textContent = userEmail;
+
+    async function estimateSalary() {
+        const jd = document.getElementById('jobDesc').value.trim();
+        if (!jd) { showToast('Please paste a job description!', 'error'); return; }
+
+        const btn = document.querySelector('.btn-primary');
+        btn.textContent = '⏳ Estimating with AI...';
+        btn.disabled = true;
+
+        try {
+            const res  = await fetch('/get_salary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_description: jd })
+            });
+            const data = await res.json();
+
+            document.getElementById('salaryRoleBanner').innerHTML =
+                `🎯 Detected Role: <strong>${data.role}</strong> &nbsp;|&nbsp; 📅 Experience: <strong>${data.experience_required}</strong> &nbsp;|&nbsp; 🤖 Gemini AI`;
+
+            document.getElementById('fresherRange').textContent = `₹${data.fresher.min} – ${data.fresher.max}`;
+            document.getElementById('fresherYears').textContent = data.fresher.label;
+            document.getElementById('midRange').textContent     = `₹${data.mid.min} – ${data.mid.max}`;
+            document.getElementById('midYears').textContent     = data.mid.label;
+            document.getElementById('seniorRange').textContent  = `₹${data.senior.min} – ${data.senior.max}`;
+            document.getElementById('seniorYears').textContent  = data.senior.label;
+
+            const skillsDiv = document.getElementById('premiumSkills');
+            if (data.premium_skills && data.premium_skills.length > 0) {
+                skillsDiv.innerHTML = data.premium_skills.map(s => `<span class="premium-tag">${s}</span>`).join('');
+                document.getElementById('skillBonus').innerHTML =
+                    `<div class="bonus-badge">🚀 These skills add <strong>+${data.skill_bonus} LPA</strong> to base salary</div>`;
+            } else {
+                skillsDiv.innerHTML = `<p style="color:var(--subtext);font-size:0.85rem;font-style:italic">No premium skills detected.</p>`;
+                document.getElementById('skillBonus').innerHTML = '';
+            }
+
+            document.getElementById('topCompanies').innerHTML = data.top_companies.map((c, i) => `
+                <div class="company-item">
+                    <span class="company-rank">${i+1}</span>
+                    <span class="company-name">${c}</span>
+                </div>`).join('');
+
+            document.getElementById('insightsGrid').innerHTML = `
+                <div class="insight-box"><div class="insight-icon">🎓</div><strong>Fresher Range</strong><span>₹${data.fresher.min}–${data.fresher.max} LPA</span></div>
+                <div class="insight-box"><div class="insight-icon">📈</div><strong>Growth Potential</strong><span>Up to ₹${data.senior.max} LPA</span></div>
+                <div class="insight-box"><div class="insight-icon">⚡</div><strong>Skill Premium</strong><span>${data.skill_bonus > 0 ? '+'+data.skill_bonus+' LPA' : 'None detected'}</span></div>
+                <div class="insight-box"><div class="insight-icon">🏢</div><strong>Top Employer</strong><span>${data.top_companies[0]}</span></div>`;
+
+            document.getElementById('salaryResults').style.display = 'block';
+            document.getElementById('salaryResults').scrollIntoView({ behavior: 'smooth' });
+            showToast('Salary estimated with Gemini AI! 💰', 'success');
+
+        } catch(err) {
+            showToast('Something went wrong. Please try again.', 'error');
+        }
+
+        btn.textContent = '💰 Estimate Salary';
+        btn.disabled = false;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — ResumeAI</title>
+    <link rel="stylesheet" href="/static/glass.css">
+    <style>
+        body { display: flex; min-height: 100vh; }
+        .auth-left {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.15));
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            justify-content: center; padding: 60px;
+            position: relative; overflow: hidden;
+        }
+        .auth-left::before {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 70% 60%, rgba(118,75,162,0.15) 0%, transparent 60%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+        .auth-brand {
+            font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #00d4ff);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 40px; position: relative;
+        }
+        .auth-left h1 {
+            font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800;
+            color: var(--text); margin-bottom: 14px; position: relative;
+            line-height: 1.2;
+        }
+        .auth-left p {
+            color: var(--subtext); line-height: 1.7;
+            margin-bottom: 30px; position: relative;
+        }
+        .auth-features {
+            display: flex; flex-direction: column; gap: 12px;
+            position: relative; margin-bottom: 32px;
+        }
+        .auth-feat {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--subtext); font-size: 0.88rem; font-weight: 500;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .auth-feat:hover {
+            background: rgba(102,126,234,0.08);
+            border-color: rgba(102,126,234,0.2);
+            color: var(--text);
+        }
+        .auth-switch { color: var(--subtext); font-size: 0.85rem; position: relative; }
+        .auth-switch a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .auth-switch a:hover { text-decoration: underline; }
+
+        /* Right panel */
+        .auth-right {
+            flex: 0 0 480px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px;
+        }
+        .auth-card {
+            width: 100%; max-width: 380px;
+            background: var(--card); backdrop-filter: var(--blur);
+            border: 1px solid var(--border); border-radius: 24px;
+            padding: 36px;
+        }
+        .auth-card h2 {
+            font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+            color: var(--text); margin-bottom: 6px;
+        }
+        .auth-sub { font-size: 0.85rem; color: var(--subtext); margin-bottom: 24px; }
+        .auth-sub a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .auth-sub a:hover { text-decoration: underline; }
+
+        .flash {
+            padding: 12px 16px; border-radius: 10px;
+            font-size: 0.85rem; margin-bottom: 16px; font-weight: 500;
+        }
+        .flash.error   { background: rgba(255,82,82,0.1);  border: 1px solid rgba(255,82,82,0.25);  color: #ff5252; }
+        .flash.success { background: rgba(0,230,118,0.1);  border: 1px solid rgba(0,230,118,0.25);  color: #00e676; }
+
+        .auth-btn {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; margin-top: 8px;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+        }
+        .auth-divider {
+            text-align: center; color: var(--subtext);
+            font-size: 0.8rem; margin: 18px 0; position: relative;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: ''; position: absolute; top: 50%;
+            width: 42%; height: 1px; background: var(--border);
+        }
+        .auth-divider::before { left: 0; }
+        .auth-divider::after  { right: 0; }
+
+        .auth-btn-outline {
+            display: block; width: 100%; padding: 13px;
+            text-align: center;
+            background: transparent; color: var(--text);
+            border: 1px solid var(--border); border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem; font-weight: 600;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .auth-btn-outline:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(102,126,234,0.3);
+        }
+
+        /* Password strength indicator */
+        .password-strength {
+            margin-top: 8px;
+            display: flex; gap: 4px;
+        }
+        .strength-bar {
+            flex: 1; height: 3px; border-radius: 2px;
+            background: rgba(255,255,255,0.06); transition: background 0.3s;
+        }
+        .strength-bar.weak   { background: #ff5252; }
+        .strength-bar.medium { background: #ffab40; }
+        .strength-bar.strong { background: #00e676; }
+        .strength-label {
+            font-size: 0.72rem; color: var(--subtext);
+            margin-top: 4px; text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .auth-left { display: none; }
+            .auth-right { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-left">
+        <div class="auth-brand">🧠 ResumeAI</div>
+        <h1>Start optimizing your resume today!</h1>
+        <p>Join job seekers who use ResumeAI to land their dream jobs faster with real Gemini AI.</p>
+        <div class="auth-features">
+            <div class="auth-feat">✅ Free to use forever</div>
+            <div class="auth-feat">🤖 Real Gemini AI Analysis</div>
+            <div class="auth-feat">📊 Track your progress over time</div>
+            <div class="auth-feat">🎯 Role-specific scoring</div>
+            <div class="auth-feat">💡 Actionable AI tips</div>
+            <div class="auth-feat">📥 Download PDF reports</div>
+        </div>
+        <div class="auth-switch">
+            Already have an account? <a href="/login">Login here →</a>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div class="auth-card">
+            <h2>Create your account</h2>
+            <p class="auth-sub">Already have an account? <a href="/login">Login</a></p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST" action="/register">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" placeholder="Your full name" required />
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="you@email.com" required />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" id="passwordInput"
+                        placeholder="Min 6 characters" required
+                        oninput="checkStrength(this.value)" />
+                    <div class="password-strength">
+                        <div class="strength-bar" id="bar1"></div>
+                        <div class="strength-bar" id="bar2"></div>
+                        <div class="strength-bar" id="bar3"></div>
+                    </div>
+                    <div class="strength-label" id="strengthLabel"></div>
+                </div>
+                <button type="submit" class="auth-btn">🚀 Create Account →</button>
+            </form>
+
+            <div class="auth-divider">or</div>
+            <a href="/login" class="auth-btn-outline">Already have an account? Login</a>
+        </div>
+    </div>
+
+    <script>
+        function checkStrength(val) {
+            const b1 = document.getElementById('bar1');
+            const b2 = document.getElementById('bar2');
+            const b3 = document.getElementById('bar3');
+            const lb = document.getElementById('strengthLabel');
+
+            // Reset
+            [b1, b2, b3].forEach(b => b.className = 'strength-bar');
+
+            if (!val) { lb.textContent = ''; return; }
+
+            let score = 0;
+            if (val.length >= 6)  score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+
+            if (score === 1) {
+                b1.classList.add('weak');
+                lb.style.color = '#ff5252';
+                lb.textContent = 'Weak';
+            } else if (score === 2) {
+                b1.classList.add('medium'); b2.classList.add('medium');
+                lb.style.color = '#ffab40';
+                lb.textContent = 'Medium';
+            } else if (score === 3) {
+                b1.classList.add('strong'); b2.classList.add('strong'); b3.classList.add('strong');
+                lb.style.color = '#00e676';
+                lb.textContent = 'Strong 💪';
+            }
+        }
+    </script>
+
+</body>
+</html>

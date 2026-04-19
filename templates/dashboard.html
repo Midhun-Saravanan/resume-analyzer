@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ResumeAI</title>
+    <link rel="stylesheet" href="/static/glass.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        /* ── Welcome Banner ── */
+        .dash-welcome {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding: 28px 32px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.1));
+            border: 1px solid rgba(102,126,234,0.25);
+            border-radius: 24px;
+            animation: fadeUp 0.5s ease both;
+        }
+        .dash-welcome h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .dash-welcome p { color: var(--subtext); font-size: 0.9rem; }
+        .btn-analyze {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+
+        /* ── Stats Row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px 14px;
+            text-align: center;
+            transition: all 0.3s;
+            animation: fadeUp 0.5s ease both;
+        }
+        .stat-box:hover { transform: translateY(-4px); border-color: rgba(102,126,234,0.3); box-shadow: var(--glow); }
+        .stat-icon { font-size: 1.4rem; margin-bottom: 6px; }
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .stat-label { font-size: 0.72rem; color: var(--subtext); font-weight: 500; }
+
+        /* ── Gauge Section ── */
+        .gauges-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .gauge-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px 20px;
+            text-align: center;
+            animation: fadeUp 0.6s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+        .gauge-card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(102,126,234,0.08), transparent);
+        }
+        .gauge-title {
+            font-size: 0.8rem;
+            color: var(--subtext);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        .gauge-wrap {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 16px;
+        }
+        .gauge-wrap canvas { width: 160px !important; height: 160px !important; }
+        .gauge-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+        .gauge-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+        .gauge-unit {
+            font-size: 0.75rem;
+            color: var(--subtext);
+            font-weight: 600;
+        }
+        .gauge-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .gauge-sub { font-size: 0.78rem; color: var(--subtext); }
+
+        /* ── Bottom Grid ── */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* ── Activity Cards ── */
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .activity-icon.blue  { background: rgba(102,126,234,0.15); }
+        .activity-icon.green { background: rgba(0,230,118,0.12); }
+        .activity-icon.gold  { background: rgba(255,171,64,0.12); }
+        .activity-icon.pink  { background: rgba(255,82,130,0.12); }
+        .activity-info { flex: 1; }
+        .activity-title { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .activity-meta  { font-size: 0.76rem; color: var(--subtext); }
+        .activity-score {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .activity-score.green  { color: #00e676; }
+        .activity-score.orange { color: #ffab40; }
+        .activity-score.red    { color: #ff5252; }
+
+        /* ── History Table ── */
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            color: var(--subtext);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+        .history-table td {
+            padding: 12px 14px;
+            font-size: 0.86rem;
+            color: var(--text);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .history-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .score-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .score-pill.green  { background: rgba(0,230,118,0.12);  color: #00e676; border: 1px solid rgba(0,230,118,0.25); }
+        .score-pill.orange { background: rgba(255,171,64,0.12); color: #ffab40; border: 1px solid rgba(255,171,64,0.25); }
+        .score-pill.red    { background: rgba(255,82,82,0.12);  color: #ff5252; border: 1px solid rgba(255,82,82,0.25); }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-badge.good { background: rgba(0,230,118,0.1);  color: #00e676; }
+        .status-badge.avg  { background: rgba(255,171,64,0.1); color: #ffab40; }
+        .status-badge.bad  { background: rgba(255,82,82,0.1);  color: #ff5252; }
+
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 16px; }
+        .empty-state h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; margin-bottom: 8px; }
+        .empty-state p { color: var(--subtext); margin-bottom: 24px; }
+
+        /* ── Card Title ── */
+        .card-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .view-all {
+            font-size: 0.78rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .stats-row    { grid-template-columns: repeat(3, 1fr); }
+            .gauges-grid  { grid-template-columns: 1fr 1fr; }
+            .bottom-grid  { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .stats-row   { grid-template-columns: repeat(2, 1fr); }
+            .gauges-grid { grid-template-columns: 1fr; }
+            .dash-welcome { flex-direction: column; gap: 16px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="page-wrapper">
+<div class="container">
+
+    <!-- Welcome -->
+    <div class="dash-welcome">
+        <div>
+            <h1>Welcome back, {{ session.user_name }}! 👋</h1>
+            <p>Here's your complete activity overview</p>
+        </div>
+        <a href="/analyzer" class="btn-analyze">🔍 New Analysis</a>
+    </div>
+
+    {% if analyses %}
+
+    <!-- ── Stats Row (6 boxes) ── -->
+    <div class="stats-row">
+        <div class="stat-box" style="animation-delay:0s">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ stats.total_analyses if stats else analyses|length }}</div>
+            <div class="stat-label">Analyses</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.05s">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value">{{ stats.best_ats_score if stats else analyses[0].ats_score }}%</div>
+            <div class="stat-label">Best Score</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.1s">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">{{ stats.avg_ats_score if stats else 0 }}%</div>
+            <div class="stat-label">Avg Score</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.15s">
+            <div class="stat-icon">🎤</div>
+            <div class="stat-value">{{ stats.total_interviews if stats else 0 }}</div>
+            <div class="stat-label">Interviews</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.2s">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ stats.salary_searches if stats else 0 }}</div>
+            <div class="stat-label">Salary Checks</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.25s">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value">{{ stats.resume_builds if stats else 0 }}</div>
+            <div class="stat-label">Resumes Built</div>
+        </div>
+    </div>
+
+    <!-- ── Gauge Charts ── -->
+    <div class="gauges-grid">
+
+        <div class="gauge-card" style="animation-delay:0.1s">
+            <div class="gauge-title">🎯 Latest ATS Score</div>
+            <div class="gauge-wrap">
+                <canvas id="gaugeATS"></canvas>
+                <div class="gauge-center">
+                    <div class="gauge-num" id="gAtsNum">0</div>
+                    <div class="gauge-unit">/ 100</div>
+                </div>
+            </div>
+            <div class="gauge-label">ATS Match Score</div>
+            <div class="gauge-sub">Last resume analyzed</div>
+        </div>
+
+        <div class="gauge-card" style="animation-delay:0.2s">
+            <div class="gauge-title">💪 Resume Strength</div>
+            <div class="gauge-wrap">
+                <canvas id="gaugeStrength"></canvas>
+                <div class="gauge-center">
+                    <div class="gauge-num" id="gStrNum">0</div>
+                    <div class="gauge-unit">/ 100</div>
+                </div>
+            </div>
+            <div class="gauge-label">Strength Score</div>
+            <div class="gauge-sub">Content quality rating</div>
+        </div>
+
+        <div class="gauge-card" style="animation-delay:0.3s">
+            <div class="gauge-title">📊 Overall Progress</div>
+            <div class="gauge-wrap">
+                <canvas id="gaugeAvg"></canvas>
+                <div class="gauge-center">
+                    <div class="gauge-num" id="gAvgNum">0</div>
+                    <div class="gauge-unit">avg</div>
+                </div>
+            </div>
+            <div class="gauge-label">Average ATS Score</div>
+            <div class="gauge-sub">Across all {{ analyses|length }} analyses</div>
+        </div>
+
+    </div>
+
+    <!-- ── Bottom Grid ── -->
+    <div class="bottom-grid">
+
+        <!-- Recent Activity -->
+        <div class="glass-card animate-fade">
+            <div class="card-title-row">
+                <div class="card-title">⚡ Recent Activity</div>
+            </div>
+
+            {% for a in analyses[:4] %}
+            <div class="activity-item">
+                <div class="activity-icon blue">🔍</div>
+                <div class="activity-info">
+                    <div class="activity-title">{{ a.role or 'Resume Analyzed' }}</div>
+                    <div class="activity-meta">{{ a.date }} · Resume Analysis</div>
+                </div>
+                <div class="activity-score {% if a.ats_score >= 70 %}green{% elif a.ats_score >= 40 %}orange{% else %}red{% endif %}">
+                    {{ a.ats_score }}%
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if interviews %}
+            {% for i in interviews %}
+            <div class="activity-item">
+                <div class="activity-icon green">🎤</div>
+                <div class="activity-info">
+                    <div class="activity-title">{{ i.role or 'Interview Prep' }}</div>
+                    <div class="activity-meta">{{ i.date }} · {{ i.total_questions }} questions · {{ i.experience }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if salary_hist %}
+            {% for s in salary_hist %}
+            <div class="activity-item">
+                <div class="activity-icon gold">💰</div>
+                <div class="activity-info">
+                    <div class="activity-title">{{ s.role or 'Salary Search' }}</div>
+                    <div class="activity-meta">{{ s.date }} · ₹{{ s.fresher_min }}–{{ s.senior_max }} LPA</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if resume_builds %}
+            {% for b in resume_builds %}
+            <div class="activity-item">
+                <div class="activity-icon pink">📝</div>
+                <div class="activity-info">
+                    <div class="activity-title">{{ b.full_name or 'Resume Built' }}</div>
+                    <div class="activity-meta">{{ b.date }} · {{ b.template|capitalize }} template · {{ b.completeness }}% complete</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+        </div>
+
+        <!-- Analysis History Table -->
+        <div class="glass-card animate-fade animate-delay-1">
+            <div class="card-title-row">
+                <div class="card-title">🕐 Analysis History</div>
+                <a href="/analyzer" class="view-all">+ New →</a>
+            </div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Role</th>
+                        <th>ATS</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in analyses %}
+                    <tr>
+                        <td>{{ a.date }}</td>
+                        <td>{{ a.role }}</td>
+                        <td>
+                            <span class="score-pill {% if a.ats_score >= 70 %}green{% elif a.ats_score >= 40 %}orange{% else %}red{% endif %}">
+                                {{ a.ats_score }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if a.ats_score >= 70 %}
+                                <span class="status-badge good">Strong</span>
+                            {% elif a.ats_score >= 40 %}
+                                <span class="status-badge avg">Average</span>
+                            {% else %}
+                                <span class="status-badge bad">Weak</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state animate-fade">
+        <div class="empty-icon">📄</div>
+        <h2>No analyses yet!</h2>
+        <p>Upload your first resume to see your dashboard come alive.</p>
+        <a href="/analyzer" class="btn-analyze">🔍 Analyze Now</a>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+
+<!-- Raw data for JS -->
+<script id="analysisRaw"  type="application/json">{{ analyses  | tojson | safe }}</script>
+<script id="statsRaw"     type="application/json">{{ stats     | tojson | safe }}</script>
+
+<script src="/static/glass_nav.js"></script>
+<script>
+    // ── Profile ──────────────────────────────────────
+    const userName  = "{{ session.user_name }}";
+    const userEmail = "{{ session.user_email }}";
+    const initials  = userName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('profileAvatar').textContent = initials;
+    document.getElementById('profileName').textContent   = userName.split(' ')[0];
+    document.getElementById('dropdownName').textContent  = userName;
+    document.getElementById('dropdownEmail').textContent = userEmail;
+
+    // ── Data ─────────────────────────────────────────
+    const analyses = JSON.parse(document.getElementById('analysisRaw').textContent);
+    const stats    = JSON.parse(document.getElementById('statsRaw').textContent) || {};
+
+    if (!analyses || analyses.length === 0) {
+        // no chart needed
+    } else {
+        const latestATS      = analyses[0].ats_score      || 0;
+        const latestStrength = analyses[0].strength_score || 0;
+        const avgATS         = stats.avg_ats_score        || Math.round(analyses.reduce((s,a)=>s+a.ats_score,0)/analyses.length);
+
+        // ── Animated counter ─────────────────────────
+        function animateNum(elId, target, duration=1200) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            let start = 0;
+            const step = target / (duration / 16);
+            const timer = setInterval(() => {
+                start = Math.min(start + step, target);
+                el.textContent = Math.round(start);
+                if (start >= target) clearInterval(timer);
+            }, 16);
+        }
+
+        // ── Build a gauge chart ───────────────────────
+        function buildGauge(canvasId, value, color1, color2) {
+            const pct   = Math.min(Math.max(value, 0), 100) / 100;
+            const empty = 1 - pct;
+
+            // Color by score
+            let c1 = color1, c2 = color2;
+            if (value >= 70) { c1 = '#00e676'; c2 = '#00b248'; }
+            else if (value >= 40) { c1 = '#ffab40'; c2 = '#e65100'; }
+            else { c1 = '#ff5252'; c2 = '#b71c1c'; }
+
+            new Chart(document.getElementById(canvasId), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [pct, empty],
+                        backgroundColor: [
+                            // gradient trick via segment color
+                            c1,
+                            'rgba(255,255,255,0.05)'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        spacing: 2
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    rotation: -110,
+                    circumference: 220,
+                    responsive: false,
+                    animation: {
+                        animateRotate: true,
+                        duration: 1400,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+
+        // ── Draw all 3 gauges ─────────────────────────
+        buildGauge('gaugeATS',      latestATS);
+        buildGauge('gaugeStrength', latestStrength);
+        buildGauge('gaugeAvg',      avgATS);
+
+        // ── Animate numbers ───────────────────────────
+        animateNum('gAtsNum',  latestATS);
+        animateNum('gStrNum',  latestStrength);
+        animateNum('gAvgNum',  avgATS);
+    }
+</script>
+</body>
+</html>

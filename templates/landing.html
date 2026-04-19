@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeAI — Smart Resume Analyzer</title>
+    <link rel="stylesheet" href="/static/glass.css">
+    <style>
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            padding: 100px 60px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .hero-content { flex: 1; max-width: 560px; }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(102,126,234,0.15);
+            border: 1px solid rgba(102,126,234,0.3);
+            color: var(--primary);
+            padding: 7px 18px; border-radius: 20px;
+            font-size: 0.82rem; font-weight: 600; margin-bottom: 24px;
+            animation: fadeUp 0.5s ease both;
+        }
+        .hero-content h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 3.2rem; font-weight: 800; line-height: 1.15;
+            color: var(--text); margin-bottom: 20px;
+            animation: fadeUp 0.5s ease 0.1s both;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea, #00d4ff);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-content p {
+            color: var(--subtext); font-size: 1.05rem; line-height: 1.7;
+            margin-bottom: 32px;
+            animation: fadeUp 0.5s ease 0.2s both;
+        }
+        .hero-buttons {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            animation: fadeUp 0.5s ease 0.3s both;
+        }
+        .btn-hero-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; padding: 14px 28px; border-radius: 12px;
+            text-decoration: none; font-weight: 700; font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+        .btn-hero-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.06); color: var(--text);
+            padding: 14px 28px; border-radius: 12px; text-decoration: none;
+            font-weight: 600; font-size: 0.95rem; border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(102,126,234,0.3); }
+        .hero-stats {
+            display: flex; gap: 24px; margin-top: 40px; flex-wrap: wrap;
+            animation: fadeUp 0.5s ease 0.4s both;
+        }
+        .hero-stat strong { display: block; font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 900; color: var(--text); }
+        .hero-stat span { font-size: 0.78rem; color: var(--subtext); }
+        .stat-divider { width: 1px; background: var(--border); }
+        .hero-visual { flex: 0 0 420px; animation: fadeUp 0.5s ease 0.2s both; }
+        .mock-card {
+            background: rgba(15,15,42,0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(102,126,234,0.2);
+            border-radius: 24px; padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), var(--glow);
+            animation: float 4s ease-in-out infinite;
+        }
+        .mock-header {
+            display: flex; align-items: center; gap: 6px; margin-bottom: 18px;
+            padding-bottom: 14px; border-bottom: 1px solid var(--border);
+        }
+        .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .mock-dot.red { background: #ff5252; }
+        .mock-dot.yellow { background: #ffab40; }
+        .mock-dot.green { background: #00e676; }
+        .mock-title { margin-left: 6px; font-size: 0.82rem; color: var(--subtext); font-weight: 600; }
+        .mock-score-row { display: flex; gap: 16px; margin-bottom: 14px; }
+        .mock-circle {
+            flex: 1; background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px; text-align: center;
+        }
+        .mock-circle span { display: block; font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 900; }
+        .mock-circle.ats span { color: #667eea; }
+        .mock-circle.str span { color: #00e676; }
+        .mock-circle small { font-size: 0.7rem; color: var(--subtext); }
+        .mock-role {
+            background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.2);
+            border-radius: 8px; padding: 8px 12px; font-size: 0.8rem;
+            color: var(--primary); font-weight: 600; margin-bottom: 14px;
+        }
+        .mock-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.75rem; color: var(--subtext); }
+        .mock-bar-track { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+        .mock-bar-fill { height: 100%; border-radius: 4px; }
+        .mock-bar-fill.green { background: linear-gradient(90deg, #00e676, #00b0ff); }
+        .mock-bar-fill.orange { background: linear-gradient(90deg, #ffab40, #ff6d00); }
+        .mock-bar-fill.blue { background: linear-gradient(90deg, #667eea, #764ba2); }
+        .mock-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+        .mock-tag { padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+        .mock-tag.green { background: rgba(0,230,118,0.12); color: #00e676; border: 1px solid rgba(0,230,118,0.2); }
+        .mock-tag.red { background: rgba(255,82,82,0.12); color: #ff5252; border: 1px solid rgba(255,82,82,0.2); }
+
+        .section { padding: 80px 60px; max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            display: inline-block; font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 2px; color: var(--primary);
+            background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.2);
+            padding: 5px 14px; border-radius: 20px; margin-bottom: 14px;
+        }
+        .section-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .section-sub { color: var(--subtext); font-size: 0.95rem; margin-bottom: 40px; }
+        .steps { display: flex; align-items: center; gap: 20px; }
+        .step {
+            flex: 1; background: var(--card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; text-align: center; transition: all 0.3s;
+        }
+        .step:hover { transform: translateY(-5px); border-color: rgba(102,126,234,0.3); box-shadow: var(--glow); }
+        .step-icon { font-size: 2rem; margin-bottom: 8px; }
+        .step-num {
+            font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .step h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .step p { font-size: 0.82rem; color: var(--subtext); line-height: 1.6; }
+        .step-arrow { font-size: 1.5rem; color: var(--subtext); flex-shrink: 0; }
+        .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .feature-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 18px; padding: 22px; transition: all 0.3s;
+        }
+        .feature-card:hover { transform: translateY(-4px); border-color: rgba(102,126,234,0.3); box-shadow: var(--glow); }
+        .feature-icon { font-size: 1.8rem; margin-bottom: 10px; }
+        .feature-card h3 { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+        .feature-card p { font-size: 0.78rem; color: var(--subtext); line-height: 1.5; }
+        .cta-section {
+            background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.1));
+            border-top: 1px solid rgba(102,126,234,0.15);
+            border-bottom: 1px solid rgba(102,126,234,0.15);
+            padding: 80px 20px; text-align: center;
+        }
+        .cta-section h2 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .cta-section p { color: var(--subtext); margin-bottom: 30px; }
+        .footer { padding: 40px 60px; text-align: center; border-top: 1px solid var(--border); }
+        .footer-brand {
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+            background: linear-gradient(135deg, #667eea, #00d4ff);
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .footer p { color: var(--subtext); font-size: 0.82rem; margin-bottom: 16px; }
+        .footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .footer-links a { color: var(--subtext); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        /* Nav auth styles for logged out state */
+        .nav-auth { display: flex; align-items: center; gap: 10px; }
+        .nav-login {
+            color: var(--subtext); text-decoration: none; font-size: 0.85rem;
+            font-weight: 600; padding: 7px 14px; border-radius: 50px; transition: all 0.2s;
+        }
+        .nav-login:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+        .nav-register {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; text-decoration: none; font-size: 0.85rem;
+            font-weight: 700; padding: 8px 18px; border-radius: 50px; transition: all 0.3s;
+        }
+        .nav-register:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; padding: 100px 20px 40px; }
+            .hero-visual { display: none; }
+            .hero-content h1 { font-size: 2.2rem; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .section { padding: 50px 20px; }
+            .steps { flex-direction: column; }
+            .step-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">✨ AI Powered • Gemini 2.5 Flash • Free to Use</div>
+        <h1>Get Your Resume <span class="gradient-text">ATS Score</span> in Seconds</h1>
+        <p>Upload your resume, paste a job description and instantly discover how well you match — with real Gemini AI analysis, keyword gaps, section scoring and actionable tips.</p>
+        <div class="hero-buttons">
+            {% if user %}
+                <a href="/analyzer" class="btn-hero-primary">🔍 Analyze My Resume</a>
+                <a href="/dashboard" class="btn-hero-secondary">📊 My Dashboard</a>
+            {% else %}
+                <a href="/register" class="btn-hero-primary">🚀 Get Started Free</a>
+                <a href="/login" class="btn-hero-secondary">Login →</a>
+            {% endif %}
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><strong>10+</strong><span>Smart Features</span></div>
+            <div class="stat-divider"></div>
+            <div class="hero-stat"><strong>AI</strong><span>Gemini 2.5</span></div>
+            <div class="stat-divider"></div>
+            <div class="hero-stat"><strong>PDF</strong><span>& DOCX</span></div>
+            <div class="stat-divider"></div>
+            <div class="hero-stat"><strong>100%</strong><span>Free</span></div>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="mock-card">
+            <div class="mock-header">
+                <span class="mock-dot red"></span>
+                <span class="mock-dot yellow"></span>
+                <span class="mock-dot green"></span>
+                <span class="mock-title">Resume Analysis — Gemini AI</span>
+            </div>
+            <div class="mock-score-row">
+                <div class="mock-circle ats"><span>85%</span><small>ATS Score</small></div>
+                <div class="mock-circle str"><span>90%</span><small>Strength</small></div>
+            </div>
+            <div class="mock-role">🎯 Detected: Python Developer</div>
+            <div class="mock-bars">
+                <div class="mock-bar-row"><span>Skills</span><div class="mock-bar-track"><div class="mock-bar-fill green" style="width:88%"></div></div><span>88%</span></div>
+                <div class="mock-bar-row"><span>Experience</span><div class="mock-bar-track"><div class="mock-bar-fill orange" style="width:72%"></div></div><span>72%</span></div>
+                <div class="mock-bar-row"><span>Education</span><div class="mock-bar-track"><div class="mock-bar-fill blue" style="width:65%"></div></div><span>65%</span></div>
+            </div>
+            <div class="mock-tags">
+                <span class="mock-tag green">python</span>
+                <span class="mock-tag green">flask</span>
+                <span class="mock-tag green">mysql</span>
+                <span class="mock-tag red">docker</span>
+                <span class="mock-tag red">aws</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+    <div class="section-label">SIMPLE PROCESS</div>
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-sub">Three simple steps to know exactly where you stand</p>
+    <div class="steps">
+        <div class="step"><div class="step-icon">📄</div><div class="step-num">01</div><h3>Upload Resume</h3><p>Upload your resume in PDF or DOCX format. Our parser extracts all content intelligently.</p></div>
+        <div class="step-arrow">→</div>
+        <div class="step"><div class="step-icon">📋</div><div class="step-num">02</div><h3>Paste Job Description</h3><p>Copy and paste the job description you're targeting. Gemini AI detects the role and requirements.</p></div>
+        <div class="step-arrow">→</div>
+        <div class="step"><div class="step-icon">📊</div><div class="step-num">03</div><h3>Get Your Report</h3><p>Instantly receive your ATS score, keyword gaps, section scores and AI-powered tips to improve.</p></div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+    <div class="section-label">WHAT YOU GET</div>
+    <h2 class="section-title">Packed With Smart Features</h2>
+    <p class="section-sub">Everything you need to optimize your resume for any job</p>
+    <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon">🎯</div><h3>ATS Match Score</h3><p>Real AI-powered score showing how well your resume matches the job.</p></div>
+        <div class="feature-card"><div class="feature-icon">🔍</div><h3>Job Role Detector</h3><p>Gemini AI identifies the exact role from the description automatically.</p></div>
+        <div class="feature-card"><div class="feature-icon">💪</div><h3>Resume Strength</h3><p>Rates your resume quality based on sections, metrics, and formatting.</p></div>
+        <div class="feature-card"><div class="feature-icon">📊</div><h3>Section Breakdown</h3><p>Separate scores for Skills, Experience and Education sections.</p></div>
+        <div class="feature-card"><div class="feature-icon">✅</div><h3>Keyword Analysis</h3><p>See exactly which keywords match and which ones are missing.</p></div>
+        <div class="feature-card"><div class="feature-icon">⚖️</div><h3>Compare Resumes</h3><p>Upload two versions and see which scores better for a specific job.</p></div>
+        <div class="feature-card"><div class="feature-icon">💰</div><h3>Salary Estimator</h3><p>Get AI salary range estimates based on the job description.</p></div>
+        <div class="feature-card"><div class="feature-icon">💼</div><h3>Interview Prep</h3><p>Get role-specific AI-generated interview questions for any JD.</p></div>
+        <div class="feature-card"><div class="feature-icon">📥</div><h3>PDF Report</h3><p>Export a professional PDF report of your analysis to share or keep.</p></div>
+        <div class="feature-card"><div class="feature-icon">📈</div><h3>Score History</h3><p>Track your improvement over time with charts and analytics.</p></div>
+        <div class="feature-card"><div class="feature-icon">📝</div><h3>Resume Builder</h3><p>Build an ATS-friendly resume from scratch with live preview.</p></div>
+        <div class="feature-card"><div class="feature-icon">👤</div><h3>User Accounts</h3><p>Free account to save history and track progress over time.</p></div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <h2>Ready to Land Your Dream Job?</h2>
+    <p>Analyze your resume with real Gemini AI — free, no credit card needed.</p>
+    {% if user %}
+        <a href="/analyzer" class="btn-hero-primary">🔍 Analyze My Resume</a>
+    {% else %}
+        <a href="/register" class="btn-hero-primary">🚀 Get Started Free</a>
+    {% endif %}
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">🧠 ResumeAI</div>
+    <p>Built with Python, Flask & Gemini AI • Portfolio Project</p>
+    <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/analyzer">Analyzer</a>
+        <a href="/compare">Compare</a>
+        <a href="/interview">Interview</a>
+        <a href="/builder">Builder</a>
+        <a href="/salary">Salary</a>
+        <a href="/tips">Tips</a>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </div>
+</footer>
+
+<script src="/static/glass_nav.js"></script>
+{% if session.user_id %}
+<script>
+    const userName  = "{{ session.user_name }}";
+    const userEmail = "{{ session.user_email }}";
+    const initials  = userName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('profileAvatar').textContent = initials;
+    document.getElementById('profileName').textContent   = userName.split(' ')[0];
+    document.getElementById('dropdownName').textContent  = userName;
+    document.getElementById('dropdownEmail').textContent = userEmail;
+</script>
+{% endif %}
+
+</body>
+</html>

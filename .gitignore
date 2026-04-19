@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.venv-1/
+*.db
+.env
+uploads/
+gemini_ai copy.py

@@ -1,0 +1,8 @@
+flask
+google-generativeai
+pdfplumber
+python-docx
+werkzeug
+gunicorn
+Pillow
+requests
